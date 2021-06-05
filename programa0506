@@ -1,0 +1,266 @@
+#define TABLENUMBER 10     //NUMERO DE MESAS DA PIZZARIA
+#define MAXITEMSPERBILL 10 //NUMERO MAXIMO DE PEDIDOS REGISTRADOS POR MESA
+#define MAX 10
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h> //Remover depois
+
+typedef struct{
+    float price;
+    char *productName;
+} item;
+
+typedef struct{
+    item *products;
+    int count;
+} table;
+typedef struct{
+	float price1;
+	int cod;
+}temp;
+
+//Descricao das funcoes usadas.
+void MenuRegister(item *targetProduct);
+
+int MenuView(item *menu, int menuSize);
+
+int SalesRegister(item menuProduct, table *tableTarget);
+
+void TableView(table *loungeTarget, int tableCod);
+
+int SalesCancel(table *tableTarget, int targetItem);
+
+void getMenu(temp *temp);
+
+float MyBillIs(table tableTarget);
+
+void writeMenu (item targetProducts[], int products);
+
+void ComandasView(void);
+
+//Aplicacao
+int main(int argc, char **argv){
+
+   // pre loading do arquivo menu em uma struct operavel
+    temp *temp;
+    temp = (item *)malloc(MAX * sizeof(item));
+    getMenu(temp);
+   //---------------------------------------------------------- 
+     
+	 
+	item *menu;	
+    int option=0;   
+    
+    do
+    {        
+        system("cls");
+        printf("------------------BEM VINDO A PIZZARIA DE LAB I------------------\n");
+        printf("PRINCIPAL\n\n");
+        printf("1 - Consultar menu\n");
+        printf("2 - Comandas\n");
+        printf("3 - Sair\n");
+        printf("4 - Adicionar Menu\n");
+        printf("Opcao: ");
+      
+        scanf("%d%*c", &option);
+         int T;
+         int N; //Numero de items a serem cadastrados no menu
+        switch (option){
+            case 0:
+                continue;
+                break;
+            case  1:
+                MenuView(menu, N);
+                break;
+            case  2:
+                ComandasView();
+                break;
+            case  3:
+                return 0;
+                break; 
+            case 4:   
+     	    printf ("Quantos itens serao adicionados?\n");
+		    scanf("%d%*c", &N);
+            menu = (item *)malloc(N * sizeof(item));
+            if (menu){
+            for (int i = 0; i < N; i++){
+            MenuRegister(menu + i);
+            }
+            }
+            printf("Salvar o menu?\n");
+            scanf("%d", &T);
+            if (T == 0){
+			writeMenu(menu, N);
+			}
+			break;
+            default:
+            printf("Digite uma opcao valida!");
+            break;
+        }
+    }while(1);
+    return 0;
+}
+
+//Funcoes
+void MenuRegister(item *targetProduct){
+	
+    targetProduct->productName = (char *)malloc(sizeof(char *));
+    fgets(targetProduct->productName, 60, stdin);
+    targetProduct->productName[strcspn(targetProduct->productName, "\n")] = '\0'; // Source: https://stackoverflow.com/questions/2693776/removing-trailing-newline-character-from-fgets-input/2693826#2693826
+    scanf("%f%*c", &targetProduct->price);
+}
+
+void writeMenu (item targetProducts[], int products){ // products é a quantidade de itens adicionados	
+	FILE *file; 
+	file = fopen("menu.txt", "w");
+	int i;
+	for (i=0; i <products; i++) {
+fprintf(file, "%d %s %f\n", i, targetProducts[i].productName, targetProducts[i].price);
+}
+fclose(file);
+	file = fopen("menu.txt", "a");
+	fprintf(file, "\\");
+	fprintf(file, "n");
+	fclose(file);
+}
+
+void ProductList(){
+   
+  FILE* arquivo = fopen("menu.txt", "r");
+    if(arquivo == NULL) {
+        fprintf(stderr, "Erro ao tentar abrir o menu!\n");
+        exit(0);
+    } 
+    int x; char z[10]; float y;
+    while (fscanf(arquivo, "%d %s %f", &x, &z, &y) != NULL){
+    printf("%d %s %f\n", x,z,y);
+}
+}
+
+void getMenu(temp *temp){
+   
+FILE* arquivo = fopen("menu.txt", "r");
+if(arquivo != NULL) {
+
+int a = 0;
+int x; char z[10]; float y;
+while (fscanf(arquivo, "%d %s %f", &x, &z, &y) != NULL){
+temp[a].cod = x;
+temp[a].price1 = y;
+a++;
+}
+}
+}
+
+int MenuView(item *menu, int menuSize){
+    int menuViewOption;
+    char option[0];
+    system("cls");
+    printf("------------------BEM VINDO A PIZZARIA DE LAB I------------------\n");
+    printf("MENU\n\n");
+
+    ProductList();    
+    printf("\n");
+    printf("0 - Voltar para principal\n");
+    
+    printf("Opcao: ");
+
+    do{
+    scanf("%d%*c", &menuViewOption);
+    }while(menuViewOption == NULL && menuViewOption !=0);
+    printf ("confirmar pedido? y/n");
+	scanf ("%c", option[0]); 
+	if (option [0] == 'y')
+	{	return menuViewOption;
+	} 
+	
+    
+}
+
+int SalesRegister(item menuProduct, table *tableTarget){
+    if (tableTarget->count < 10){
+        tableTarget->products[tableTarget->count] = menuProduct;
+        tableTarget->count++;
+        return 1;
+    }
+    return 0;
+}
+
+void TableView(table *loungeTarget, int tableCod){
+    system("cls");
+    printf("------------------BEM VINDO A PIZZARIA DE LAB I------------------\n");
+    printf("COMANDA MESA %d\n\n", tableCod);
+    for (int i = 0; i < loungeTarget[tableCod].count; i++){
+        printf("%s -> R$ %.2f\n", loungeTarget[tableCod].products[i].productName, loungeTarget[tableCod].products[i].price);
+    }
+}
+
+int SalesCancel(table *tableTarget, int targetItem){
+    item itemNull;
+    itemNull.price = 0;
+    itemNull.productName = "";
+
+    if (tableTarget->count <= targetItem)
+        return 0;
+    else{
+        for (int i = targetItem; i < tableTarget->count; i++){
+            if (i == tableTarget->count - 1)
+                tableTarget->products[i] = itemNull;
+            else
+                tableTarget->products[i] = tableTarget->products[i + 1];
+        }
+        tableTarget->count--;
+        return 1;
+    }
+}
+
+float MyBillIs(table tableTarget){
+    float billSum = 0.0;
+
+    for (int i = 0; i < tableTarget.count; i++)
+        billSum += tableTarget.products[i].price;
+
+    return billSum;
+}
+
+void ComandasView(){
+	table *lounge;
+    lounge = (table *)malloc(TABLENUMBER * sizeof(table));
+    for (int i = 0; i < TABLENUMBER; i++){
+    lounge[i].products = (item *)malloc(MAXITEMSPERBILL * sizeof(item));
+    lounge[i].count = 0;
+    }
+	
+	
+	int option =0;
+    system("cls");
+    printf("------------------BEM VINDO A PIZZARIA DE LAB I------------------\n");
+    printf("COMANDAS\n\n");
+    printf("1 - Consultar comanda\n");
+    printf("2 - Lancamento\n");
+    printf("3 - Estorno\n");
+    printf("4 - Fechar mesa\n");
+    printf("0 - Voltar para principal\n");
+    scanf("%d", &option);
+    switch (option){
+	case 0 :
+	break;
+    case 1 :
+    TableView(lounge, 1);	
+	break;
+	case 2 :
+	printf ("d f");
+	break;	
+	case 3:
+	printf ("Estorno\n");
+	break;
+	case 4:
+	printf ("Opção inválida\n");
+	break;
+	default:
+	printf ("Opção inválida");
+	break;
+}while(1); 
+    	
+}
